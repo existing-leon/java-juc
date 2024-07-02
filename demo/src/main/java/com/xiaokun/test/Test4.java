@@ -5,6 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * @author huxk
  * @create 2024/7/2 17:39
+ *
+ * start方法和run方法的调用
  */
 @Slf4j(topic = "c.Test4")
 public class Test4 {

@@ -28,5 +28,7 @@ public class Test4 {
         // 调用start()方法才可以解决线程阻塞问题
         t1.start();
 
+        log.debug("do other things...");
+
     }
 }

@@ -2,7 +2,7 @@ package com.xiaokun.test;
 
 import lombok.extern.slf4j.Slf4j;
 
-// 方法一：直接使用Thread
+// 直接使用Thread
 @Slf4j(topic = "c.Test1")
 public class Test1 {
     public static void main(String[] args) {

@@ -2,7 +2,7 @@ package com.xiaokun.test;
 
 import lombok.extern.slf4j.Slf4j;
 
-// 使用Runnable配合Thread
+// 方法二：使用Runnable配合Thread
 @Slf4j(topic = "c.Test2")
 public class Test2 {
     public static void main(String[] args) {

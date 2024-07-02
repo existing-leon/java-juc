@@ -21,7 +21,7 @@ public class Test10 {
         Thread t1 = new Thread(() -> {
             log.debug("run方法开始执行");
             try {
-                sleep(1);
+                sleep(1000);
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }

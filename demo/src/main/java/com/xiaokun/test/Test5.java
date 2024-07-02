@@ -19,7 +19,7 @@ public class Test5 {
 
         System.out.println(t1.getState());
         t1.start();
-        t1.start();
+//        t1.start();
         System.out.println(t1.getState());
     }
 }

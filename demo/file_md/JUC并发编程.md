@@ -578,9 +578,38 @@ Two Phase Termination
 
 
 
+### 3.11 主线程和守护线程
 
+默认情况下，Java进程需要等待所有线程都运行结束，才会结束。有一种特殊的线程叫做守护线程，只要其他非守护线程运行结束了，即使守护线程的代码没有执行完，也会强制结束。
 
+```java
+    public static void main(String[] args) throws InterruptedException {
 
+        Thread t1 = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (true) {
+                    if (Thread.currentThread().isInterrupted()) {
+                        break;
+                    }
+                }
+                log.debug("结束...");
+            }
+        }, "t1");
+
+        // 将t1线程设为守护线程, 这样就可以在主线程结束之后停止Java进程
+        t1.setDaemon(true);
+        t1.start();
+
+        Thread.sleep(1000);
+        log.debug("结束...");
+    }
+```
+
+**注意**
+
+* 垃圾回收器线程就是一种守护线程
+* Tomcat中的Acceptor和Poller线程都是守护线程，所以Tomcat接收到shutdown命令后，不会等待他们处理完当前请求
 
 
 

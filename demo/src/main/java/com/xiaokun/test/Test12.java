@@ -1,6 +1,5 @@
 package com.xiaokun.test;
 
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 import static java.lang.Thread.interrupted;
@@ -20,6 +19,7 @@ public class Test12 {
                 while (true) {
                     // 获取打断标记
                     if (interrupted() == true) {
+                        log.debug("被打断了, 退出循环...");
                         break;
                     }
                 }

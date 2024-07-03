@@ -18,7 +18,10 @@ public class Test12 {
             @Override
             public void run() {
                 while (true) {
-
+                    // 获取打断标记
+                    if (interrupted() == true) {
+                        break;
+                    }
                 }
             }
         }, "t1");

@@ -159,6 +159,423 @@
 
 
 
+## 3 Java线程
+
+### 3.1 创建和运行线程
+
+#### 方法一：直接使用Thread
+
+```java
+    public static void main(String[] args) {
+
+        Thread t = new Thread() {
+            @Override
+            public void run() {
+                log.debug("running");
+            }
+        };
+        t.setName("t1");
+        t.start();
+
+        log.debug("running");
+    }
+```
+
+#### 方法二：使用Runnable配合Thread
+
+```java
+    public static void main(String[] args) {
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                log.debug("running");
+            }
+        };
+
+        // 创建线程对象
+        Thread t = new Thread(runnable,"t2");
+
+        // 启动线程
+        t.start();
+    }
+```
+
+* #### 原理之Thread与Runnable的关系
+
+  ```java
+   * 原理之Thread与Runnable的关系：
+   * 分析Thread的源码，理清它与Runnable的关系
+   * 小结：
+   *  * 方法1是把线程和任务合并在了一起，方法2是把线程和任务分开了
+   *  * 用Runnable更容易与线程池等高级API配合
+   *  * 用Runnable让任务脱离了Thread继承体系，更灵活
+  ```
+
+#### 方法三：FutureTask配合Thread
+
+```java
+    public static void main(String[] args) throws ExecutionException, InterruptedException {
+        // 创建任务对象
+        FutureTask<Integer> task = new FutureTask<>(() -> {
+            log.info("running task");
+            sleep(2000);
+            return 100;
+        });
+
+        Thread t = new Thread(task, "t1");
+
+        t.start();
+
+        // 获取task线程的返回值：主线程阻塞等待子线程返回值
+        log.debug("{}", task.get());
+
+        log.debug("running main");
+
+    }
+```
+
+
+
+### 3.2 观察多个线程同时运行
+
+```java
+    public static void main(String[] args) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (true) {
+                    log.debug("running");
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }
+        },"t1").start();
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (true) {
+                    log.debug("running");
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }
+        }, "t2").start();
+    }
+```
+
+
+
+### 3.3 查看进程线程的方法
+
+#### **Java查看进程线程的方法：**
+
+- jps命令查看所有Java进程
+
+- jstack <PID> 查看某个Java进程（PID）的所有线程状态
+
+- jconsole来查看某个Java进程中线程的运行情况（图形界面）
+
+  jconsole远程监控配置（JDK自带工具，只需要win + R 输入 jconsole）
+
+  - 需要以如下方式运行你的java类
+
+    ```java
+    java -Djava.rmi.server.hostname=`ip地址` -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=`连接端口` -Dcom.sun.management.jmxremote.ssl=是否安全连接 -Dcom.sun.management.jmxremote.authenticate=是否认证 java类
+    ```
+
+  - 修改 /etc/hosts 文件将 127.0.0.1映射至主机名
+
+  如果要认证访问，还需要做如下步骤
+
+  - 复制 jmxremote.password 文件
+  - 修改 jmxremote.password 和 jmxremote.access 文件的权限为 600 即文件所有者可读写
+  - 连接时填入 controlRole （用户名），R&D （密码）
+
+### 3.4 原理之线程运行
+
+#### **栈与栈帧：**
+
+Java Virtual Machine Stacks（虚拟机栈）
+
+我们都知道 JVM 中由堆，栈，方法区所组成，其中栈内存是给谁用的呢？其实就是线程。每个线程启动后，虚拟机就会为其分配一块栈内存
+
+- 每个栈由多个栈帧（Frame）组成，对应着每次方法调用时所占用的内存
+- 每个线程只能有一个活动栈帧，对应着当前正在执行的那个方法
+
+#### 线程上下文切换（Thread Context Switch）：
+
+因为一下一些原因导致cpu不再执行当前的线程，转而执行另一个线程的代码
+
+- 线程的cpu时间片用完
+- 垃圾回收
+- 有更高优先级的线程需要运行
+- 线程自己调用了 sleep、yield、wait、join、park、synchronized、lock等方法
+
+当Context Switch发生时，需要由操作系统保存当前线程的状态，并恢复另一个线程的状态，Java中对应的概念就是程序计数器（Program Counter Register），它的作用是记住下一条jvm指令的执行地址，是线程私有的
+
+- 状态包括程序技术器、虚拟机栈中每个栈帧的信息，如局部变量、操作数栈、返回地址等
+- Context Switch频繁发生会影响性能
+
+
+
+### 3.5 常见方法
+
+
+
+### 3.6 start方法详解
+
+```java
+    public static void main(String[] args) {
+
+        Thread t1 = new Thread("t1") {
+            @Override
+            public void run() {
+                try {
+                    sleep(2000);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+                log.debug("running...");
+            }
+        };
+
+        // 调用run()方法还是主线程来运行, 并不能解决线程阻塞问题
+        t1.run();
+
+        // 调用start()方法才可以解决线程阻塞问题
+        t1.start();
+
+        log.debug("do other things...");
+
+    }
+```
+
+```java
+    public static void main(String[] args) {
+
+        Thread t1 = new Thread("t1") {
+            @Override
+            public void run() {
+                log.debug("running...");
+            }
+        };
+
+        System.out.println(t1.getState());
+        t1.start();
+//        t1.start();
+        System.out.println(t1.getState());
+    }
+```
+
+
+
+### 3.7 Sleep 与 yield
+
+#### sleep
+
+1. 调用sleep会让当前线程从Running进入Timed Waiting状态
+2. 其它线程可以使用interrupt方法打断正在睡眠的线程，这时sleep方法会抛出 InterruptedException
+3. 睡眠结束后的线程未必会立刻得到执行
+4. 建议用TimeUnit的sleep代替Thread的sleep来获得更好的可读性
+
+#### yield
+
+1. 调用yield会让当前线程从Running进入Runnable状态，然后调度执行其他同优先级的线程。如果这时没有同优先级的线程，那么不能保证让当前线程暂停的效果
+2. 具体的实现依赖于操作系统的任务调度器
+
+
+
+#### 线程优先级
+
+- 线程优先级会提示（hint）调度器优先调度该线程，但它仅仅是一个提示，调度器可以忽略它
+- 如果cpu 比较忙，那么线程优先级高的线程会获得更多的时间片，但cpu 闲时，优先级几乎没作用
+
+
+
+#### 案例-防止CPU占用100%
+
+**sleep实现**
+
+在没有利用cpu来计算时，不要让while(true)空转浪费cpu，这时可以使用yield或sleep来让出cpu的使用权给其他程序
+
+```java
+        while (true) {
+            try {
+                Thread.sleep(50);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+```
+
+- 可以用wait或条件变量达到类似的效果
+- 不同的是，后两种都需要加锁，并且需要相应的唤醒操作，一般适用于要进行同步的场景
+- sleep使用与无需锁同步的场景
+
+
+
+### 3.8 Join方法详解
+
+#### 为什么需要join
+
+下面的代码执行，打印r是什么？
+
+```java
+    static int r = 0;
+
+    public static void main(String[] args) {
+        test1();
+    }
+
+    private static void test1(){
+        log.debug("test1方法开始执行");
+        Thread t1 = new Thread(() -> {
+            log.debug("run方法开始执行");
+            try {
+                sleep(1);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            log.debug("run方法执行结束");
+            r = 10;
+        });
+
+        t1.start();
+        log.debug("结果为：{}", r);
+        log.debug("test1方法执行结束");
+    }
+```
+
+分析：
+
+- 因为主线程和线程 t1 是并行执行的，t1线程需要1毫秒之后才能算出 r = 10
+- 而主线程一开始就要打印 r 的结果，所以只能打印出 r = 0
+
+解决方法：
+
+- 用sleep行不行？为什么？等待的时间不好确定
+- 用join，加在 t1.start() 之后即可
+
+```java
+    static int r = 0;
+
+    public static void main(String[] args) throws InterruptedException {
+        test1();
+    }
+
+    private static void test1() throws InterruptedException {
+        log.debug("test1方法开始执行");
+        Thread t1 = new Thread(() -> {
+            log.debug("run方法开始执行");
+            try {
+                sleep(1);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            log.debug("run方法执行结束");
+            r = 10;
+        });
+
+        t1.start();
+        t1.join();
+        log.debug("结果为：{}", r);
+        log.debug("test1方法执行结束");
+    }
+```
+
+**等待多个结果的时候**
+
+程序等待时间为单个子任务执行最长时间
+
+
+
+### 3.9 interrupt 方法详解
+
+#### 打断sleep，wait，join的线程
+
+打断 sleep 的线程，会清空打断状态，以 sleep为例
+
+```java
+    public static void main(String[] args) throws InterruptedException {
+        Thread t1 = new Thread(new Runnable() {
+            @SneakyThrows
+            @Override
+            public void run() {
+                log.debug("sleep...");
+                sleep(5000);
+            }
+        }, "t1");
+
+        t1.start();
+        sleep(1000);
+        log.debug("interrupt");
+        t1.interrupt();
+        log.debug("打断状态：{}", t1.isInterrupted());
+
+    }
+```
+
+
+
+#### 两阶段终止模式
+
+Two Phase Termination
+
+在一个线程T1中如何 “优雅” 终止线程 T2？这里的【优雅】指的是给T2一个料理后事的机会
+
+1、**错误思路**
+
+- 使用线程对象的stop()方法停止线程
+  - stop方法会真正杀死线程，如果这时线程锁住了共享资源，那么当它被杀死后就再也没有机会释放锁，其它线程将永远无法获取锁
+- 使用System.exit(int)方法停止线程
+  - 目的仅是停止一个线程，但这种做法会让整个程序都停止
+
+
+
+#### 打断park线程
+
+打断park线程，不会清空打断状态
+
+```java
+    public static void main(String[] args) throws InterruptedException {
+
+        Thread t1 = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                log.debug("park...");
+                LockSupport.park();
+                log.debug("unpark...");
+                log.debug("打断状态：{}", Thread.currentThread().isInterrupted());
+            }
+        }, "t1");
+
+        t1.start();
+
+        sleep(1000);
+        t1.interrupt();
+        
+    }
+```
+
+
+
+### 3.10 不推荐的方法
+
+还有一些不推荐的方法，这些方法已经过时，容易破坏同步代码块，造成线程死锁
+
+| 方法名    | static | 功能说明             |
+| --------- | ------ | -------------------- |
+| stop()    |        | 停止线程运行         |
+| suspend() |        | 挂起（暂停）线程运行 |
+| resume()  |        | 恢复线程运行         |
+
 
 
 

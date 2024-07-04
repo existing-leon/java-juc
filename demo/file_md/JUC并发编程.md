@@ -635,13 +635,128 @@ Two Phase Termination
 
 根据Thread.State枚举，分为六种状态
 
+- 【NEW】线程刚被创建，但是还没有调用start()方法
+- 【RUNNABLE】当调用了start()方法之后，注意，**Java API** 层面的RUNNABLE状态涵盖了 **操作系统** 层面的【可运行状态】、【运行状态】和【阻塞状态】（由于BIO导致的线程阻塞，在Java里无法区分，仍然认为是可运行）
+- BLOCKED，WAITTING，TIMED_WAITTING 都是 Java API层面对【阻塞状态】的细分
+- TERMINATED 当线程代码运行结束
+
+**代码演示：**
+
+```java
+    public static void main(String[] args) {
+        Thread t1 = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                log.debug("running...");    // 因为没调用, 所以是new状态
+            }
+        });
+
+        Thread t2 = new Thread("t2") {
+            @Override
+            public void run() {
+                while (true) {      // runnable
+
+                }
+            }
+        };
+        t2.start();
+
+        Thread t3 = new Thread("t3") {
+            @Override
+            public void run() {
+                log.debug("running...");    // 正常结束, 是terminated状态
+            }
+        };
+        t3.start();
+
+        Thread t4 = new Thread("t4") {
+            @Override
+            public void run() {
+                synchronized (TestState.class) {
+                    try {
+                        Thread.sleep(1000000);      // timed_waiting
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        };
+        t4.start();
+
+        Thread t5 = new Thread("t5") {
+            @Override
+            public void run() {
+                try {
+                    t2.join();      // t2是循环, 导致t5一直等待, 所以是 waiting
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+        t5.start();
+
+        Thread t6 = new Thread("t6") {
+            @Override
+            public void run() {
+                synchronized (TestState.class) {
+                    try {
+                        Thread.sleep(1000000);      // 因为被t4抢到了锁, 所以t6一直是blocked状态
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        };
+        t6.start();
+
+
+        log.debug("t1 state {}", t1.getState());
+        log.debug("t2 state {}", t2.getState());
+        log.debug("t3 state {}", t3.getState());
+        log.debug("t4 state {}", t4.getState());
+        log.debug("t5 state {}", t5.getState());
+        log.debug("t6 state {}", t6.getState());
+    }
+```
+
+**运行结果如下：**
+
+```java
+11:22:32.969 [main] DEBUG c.TestState - t1 state NEW
+11:22:32.969 [t3] DEBUG c.TestState - running...
+11:22:32.972 [main] DEBUG c.TestState - t2 state RUNNABLE
+11:22:32.973 [main] DEBUG c.TestState - t3 state TERMINATED
+11:22:32.973 [main] DEBUG c.TestState - t4 state TIMED_WAITING
+11:22:32.973 [main] DEBUG c.TestState - t5 state WAITING
+11:22:32.973 [main] DEBUG c.TestState - t6 state BLOCKED
+```
 
 
 
+### 3.14 习题
 
+阅读华罗庚《统筹方法》，给出烧水泡茶的多线程解决方案，提示
 
+* 参考图二，用两个线程（两个人协作）模拟烧水泡茶过程
+  * 文中方法乙、丙都相当于任务串行
+  * 而图一相当于启动了4个线程，有点浪费
+* 用sleep(n) 模拟洗茶壶、洗水壶等耗费的时间
 
+附：华罗庚《统筹方法》
 
+​	统筹方法，是一种安排工作进程的数学方法。它的实用范围极广泛，在企业管理和基本建设中，以及关系复杂的科研项目的组织与管理中，都可以应用。
+
+​	怎样应用呢？主要是把工序安排好。
+
+​	比如，想泡壶茶喝。当时的情况是：开水没有；水壶要洗，茶壶、茶杯要洗；火已生了，茶叶也有了。怎么办？
+
+* 方法甲：洗好水壶，灌上凉水，放在火上；在等待水开的时间里，洗茶壶、洗茶杯、拿茶叶；等水开了，泡茶喝。
+* 方法乙：先做好一些准备工作，洗水壶，洗茶壶茶杯，拿茶叶；一切就绪，灌水烧水；坐待水开了，泡茶喝。
+* 方法丙：洗净水壶，灌上凉水，放在火上，坐待水开；水开了之后，急急忙忙找茶叶，洗茶壶茶杯，泡茶喝。
+
+哪一种方法省时间？我们能一眼看出，第一种办法好，后两种办法都窝了工。
+
+这时小事，但这时引子，可以引出生产管理等方面有用的方法来。
 
 
 

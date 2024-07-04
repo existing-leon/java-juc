@@ -17,6 +17,7 @@ public class Test18 {
             for (int i = 0; i < 5000; i++) {
                 synchronized (lock) {
                     counter++;
+                    log.debug("t1 ==> {}", counter);
                 }
             }
         }, "t1");
@@ -25,6 +26,7 @@ public class Test18 {
             for (int i = 0; i < 5000; i++) {
                 synchronized (lock) {
                     counter--;
+                    log.debug("t2 ==> {}", counter);
                 }
             }
         }, "t2");

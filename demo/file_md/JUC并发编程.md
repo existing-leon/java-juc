@@ -629,6 +629,12 @@ Two Phase Termination
 
 
 
+### 3.13 六种状态
+
+这是从Java API层面来描述的
+
+根据Thread.State枚举，分为六种状态
+
 
 
 

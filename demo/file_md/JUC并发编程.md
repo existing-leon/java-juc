@@ -979,3 +979,48 @@ static void decrement()
 
  * 互斥是保证临界区的竞态条件发生，同一时刻只能有一个线程执行临界区代码
  * 同步是由于线程执行的先后、顺序不同、需要一个线程等待其他线程运行到某个点
+
+**synchronized**
+
+语法
+
+```java
+synchronized(对象)
+{
+    //临界区
+}
+```
+
+```java
+    static int counter = 0;
+    static final Object lock = new Object();
+
+    public static void main(String[] args) throws InterruptedException {
+        Thread t1 = new Thread(() -> {
+            for (int i = 0; i < 5000; i++) {
+                synchronized (lock) {
+                    counter++;
+                }
+            }
+        }, "t1");
+
+        Thread t2 = new Thread(() -> {
+            for (int i = 0; i < 5000; i++) {
+                synchronized (lock) {
+                    counter--;
+                }
+            }
+        }, "t2");
+
+        t1.start();
+        t2.start();
+        t1.join();
+        t2.join();
+        log.debug("{}", counter);
+    }
+```
+
+
+
+
+

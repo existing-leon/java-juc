@@ -758,11 +758,99 @@ Two Phase Termination
 
 这时小事，但这时引子，可以引出生产管理等方面有用的方法来。
 
+水壶不洗，不能烧开水，因而洗水壶是烧开水的前提。没开水、没茶叶、不洗茶壶茶杯，就不能泡茶，因而这些又是泡茶的前提。
+
+**代码实现如下：**
+
+```java
+    public static void main(String[] args) {
+
+        Thread t1 = new Thread(() -> {
+            log.debug("洗水壶");
+            try {
+                sleep(1000);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            log.debug("烧开水");
+            try {
+                sleep(5000);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+
+        }, "老王");
+
+        Thread t2 = new Thread(() -> {
+            log.debug("洗茶壶");
+            try {
+                sleep(1000);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            log.debug("洗茶杯");
+            try {
+                sleep(2000);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            log.debug("拿茶叶");
+            try {
+                sleep(1000);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            try {
+                // 等待烧水结束
+                t1.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            log.debug("泡茶");
+        }, "小王");
+
+        t1.start();
+        t2.start();
+    }
+```
+
+**运行结果如下：**
+
+```java
+19:37:00.220 [小王] DEBUG c.Test16 - 洗茶壶
+19:37:00.220 [老王] DEBUG c.Test16 - 洗水壶
+19:37:01.222 [老王] DEBUG c.Test16 - 烧开水
+19:37:01.222 [小王] DEBUG c.Test16 - 洗茶杯
+19:37:03.223 [小王] DEBUG c.Test16 - 拿茶叶
+19:37:06.223 [小王] DEBUG c.Test16 - 泡茶
+```
+
+但是上面结果有缺陷：
+
+* 上面模拟的是小王等老王的水烧开了，小王泡茶，如果反过来要实现老王等小王的茶叶拿来了，老王泡茶呢？代码最好能适应这种情况
+* 上面的两个线程其实是各执行各的，如果要模拟老王把水壶交给小王泡茶，或模拟小王把茶叶交给老王泡茶呢？
+
+### 本章小结
+
+本章的重点在于掌握
+
+* 线程创建
+* 线程重要api，如start，run，sleep，join，interrupt等
+* 线程状态
+* 应用方面
+  * 异步调用：主线程执行期间，其他线程异步执行耗时操作
+  * 提高效率：并行计算，缩短运算时间
+  * 同步等待：join
+  * 统筹规划：合理使用线程，得到最优结果
+* 原理方面
+  * 线程运行流程：栈、栈帧、上下文切换、程序计数器
+  * Thread两种创建方式的源码
+* 模式方面
+  * 两阶段终止
 
 
 
-
-
+### 4 共享模型之管城
 
 
 

@@ -1032,5 +1032,59 @@ synchronized(对象)
 * 这中间即使 t1 的 cpu时间片不幸用完，被踢出了门外（不要错误理解为锁住了对象就能一直执行下去哦），这时门还是锁住的，t1仍拿着钥匙，t2线程还在阻塞状态进不来，只有下次轮到t1自己再次获取时间片时才能开门进入
 * 当 t1执行完 synchronized{} 块内的代码，这时候才会从 obj 房间出来并解开门上的锁，唤醒 t2线程把钥匙给他，t2线程这时才可以进入obj房间，锁住了门拿上钥匙，执行它的 count-- 代码
 
+**思考：**
 
+synchronized实际是用对象锁保证了临界区内代码的原子性，临界区内的代码对外是不可分割的，不会被线程切换所打断
+
+* 如何把 synchronized(obj) 放到 for 循环外面，如何理解？
+
+  * 放到for循环外面，就是对 4行代码做原子性保证，不会被线程切换锁打断
+  * 代码如下
+
+  ```java
+      static int counter = 0;
+      static final Object lock = new Object();
+  
+      public static void main(String[] args) throws InterruptedException {
+          Thread t1 = new Thread(() -> {
+              synchronized (lock) {
+                  for (int i = 0; i < 5000; i++) {
+                      counter++;
+                      log.debug("t1 ==> {}", counter);
+                  }
+              }
+          }, "t1");
+  
+          Thread t2 = new Thread(() -> {
+              synchronized (lock) {
+                  for (int i = 0; i < 5000; i++) {
+                      counter--;
+                      log.debug("t2 ==> {}", counter);
+                  }
+              }
+          }, "t2");
+  
+          t1.start();
+          t2.start();
+          t1.join();
+          t2.join();
+          log.debug("{}", counter);
+      }
+  ```
+
+  * 结果演示：
+
+  ```java
+  ... ...
+  11:13:21.357 [t1] DEBUG c.Test18 - t1 ==> 4998
+  11:13:21.357 [t1] DEBUG c.Test18 - t1 ==> 4999
+  11:13:21.357 [t1] DEBUG c.Test18 - t1 ==> 5000
+  11:13:21.357 [t2] DEBUG c.Test18 - t2 ==> 4999
+  11:13:21.357 [t2] DEBUG c.Test18 - t2 ==> 4998
+  ... ...
+  ```
+
+* 如果把 t1 synchronized(obj1) 而 t2 synchronized(obj2) 会怎样运作？
+
+* 如果 t1 synchronized(obj) 而 t2 没有加会怎么样？如何理解？
 

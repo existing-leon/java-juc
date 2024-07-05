@@ -1128,5 +1128,5 @@ synchronized实际是用对象锁保证了临界区内代码的原子性，临�
 
   
 
-* 如果 t1 synchronized(obj) 而 t2 没有加会怎么样？如何理解？
+* 如果 t1 synchronized(obj) 而 t2 没有加会怎么样？如何理解？    -- 锁对象
 

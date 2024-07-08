@@ -1238,9 +1238,53 @@ class Test04{
 
 其实就是考察 synchronized 锁住的是哪个对象
 
-**情况1：**
+**情况1：** **1 -> 2 或是 2 -> 1**
 
 ```java
+@Slf4j(topic = "c.Number")
+class Number {
+    public synchronized void a() {
+        log.debug("1");
+    }
 
+    public synchronized void b() {
+        log.debug("2");
+    }
+}
+```
+
+**情况2：** **1s后 -> 1 -> 2或 2-> 1s后 -> 1**
+
+```java
+@Slf4j(topic = "c.Number")
+class Number {
+    @SneakyThrows
+    public synchronized void a() {
+        sleep(1000);
+        log.debug("1");
+    }
+
+    public synchronized void b() {
+        log.debug("2");
+    }
+}
+```
+
+运行结果：
+
+```java
+23:03:41.282 [Thread-0] DEBUG c.Test8Locks - begin
+23:03:41.281 [Thread-1] DEBUG c.Test8Locks - begin
+23:03:42.290 [Thread-0] DEBUG c.Number - 1
+23:03:42.290 [Thread-1] DEBUG c.Number - 2
+```
+
+或者是：
+
+```java
+23:06:12.036 [Thread-1] DEBUG c.Test8Locks - begin
+23:06:12.036 [Thread-0] DEBUG c.Test8Locks - begin
+23:06:12.043 [Thread-1] DEBUG c.Number - 2
+23:06:13.045 [Thread-0] DEBUG c.Number - 1
 ```
 

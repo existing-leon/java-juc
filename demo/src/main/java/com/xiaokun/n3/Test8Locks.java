@@ -1,6 +1,9 @@
 package com.xiaokun.n3;
 
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+
+import static java.lang.Thread.sleep;
 
 /**
  * @author huxk
@@ -25,7 +28,9 @@ public class Test8Locks {
 
 @Slf4j(topic = "c.Number")
 class Number {
+    @SneakyThrows
     public synchronized void a() {
+        sleep(1000);
         log.debug("1");
     }
 

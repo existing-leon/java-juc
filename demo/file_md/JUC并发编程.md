@@ -731,6 +731,9 @@ Two Phase Termination
 11:22:32.973 [main] DEBUG c.TestState - t6 state BLOCKED
 ```
 
+* 【NEW】线程刚被创建，但是还没有调用start()方法
+* 【RUNNABLE】当调用了start()方法之后，注意，**Java API** 层面的RUNNABLE状态涵盖了 **操作系统** 层面的【可运行状态】、【运行状态】和【阻塞状态】（由于BIO导致的线程阻塞，在Java里无法区分，仍然认为是可运行）
+
 
 
 ### 3.14 习题
@@ -1129,4 +1132,115 @@ synchronized实际是用对象锁保证了临界区内代码的原子性，临�
   
 
 * 如果 t1 synchronized(obj) 而 t2 没有加会怎么样？如何理解？    -- 锁对象
+
+#### 面向对象改进
+
+将锁放到对象中去，这样避免在方法上加锁
+
+```java
+@Slf4j(topic = "c.Test18")
+public class Test18 {
+
+
+    public static void main(String[] args) throws InterruptedException {
+        Room room = new Room();
+        Thread t1 = new Thread(() -> {
+            for (int i = 0; i < 5000; i++) {
+                room.increment();
+                log.debug("t1 ==> {}", room.getCounter());
+            }
+        }, "t1");
+
+        Thread t2 = new Thread(() -> {
+            for (int i = 0; i < 5000; i++) {
+                room.decrement();
+                log.debug("t1 ==> {}", room.getCounter());
+            }
+        }, "t2");
+
+        t1.start();
+        t2.start();
+        t1.join();
+        t2.join();
+        log.debug("{}", room.getCounter());
+    }
+}
+
+class Room {
+    private int counter = 0;
+
+    public void increment() {
+        synchronized (this) {
+            counter++;
+        }
+    }
+
+    public void decrement() {
+        synchronized (this) {
+            counter--;
+        }
+    }
+
+    public int getCounter() {
+        synchronized (this) {
+            return counter;
+        }
+    }
+}
+```
+
+### 4.3 方法上的 synchronized
+
+**非静态方法**
+
+```java
+class Test01 {
+    public synchronized void test() {
+        
+    }
+}
+
+// 等价于
+class Test02 {
+    public void test() {
+        synchronized (this) {
+            
+        }
+    }
+}
+```
+
+**静态方法**
+
+```java
+class Test03 {
+    public synchronized static void test() {
+        
+    }
+}
+// 等价于
+class Test04{
+    public static void test() {
+        synchronized (Test04.class) {
+            
+        }
+    }
+}
+```
+
+#### 不加 synchronized 的方法
+
+不加synchronized的方法就好比不遵守规则的人，不去老实排队（好比翻窗户进去的）
+
+
+
+#### 所谓的“线程八锁”
+
+其实就是考察 synchronized 锁住的是哪个对象
+
+**情况1：**
+
+```java
+
+```
 

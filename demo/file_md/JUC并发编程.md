@@ -1427,10 +1427,44 @@ class Number {
     public synchronized void b() {
         log.debug("2");
     }
+}
+```
 
-    public void c() {
-        log.debug("3");
+运行结果：
+
+```java
+23:53:03.813 [Thread-1] DEBUG c.Number - 2
+23:53:04.810 [Thread-0] DEBUG c.Number - 1
+```
+
+**情况5：** **2 -> 1s后 -> 1**
+
+```java
+    public static void main(String[] args) {
+        Number n = new Number();
+        new Thread(()-> {n.a();}).start();
+        new Thread(()-> {n.b();}).start();
     }
 }
+
+@Slf4j(topic = "c.Number")
+class Number {
+    @SneakyThrows
+    public static synchronized void a() {
+        sleep(1000);
+        log.debug("1");
+    }
+
+    public synchronized void b() {
+        log.debug("2");
+    }
+}
+```
+
+运行结果：
+
+```java
+23:56:19.208 [Thread-1] DEBUG c.Number - 2
+23:56:20.206 [Thread-0] DEBUG c.Number - 1
 ```
 

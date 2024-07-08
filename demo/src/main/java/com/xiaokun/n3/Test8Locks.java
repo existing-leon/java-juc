@@ -30,18 +30,24 @@ public class Test8Locks {
 //        }).start();
 //    }
 
+//    public static void main(String[] args) {
+//        Number n1 = new Number();
+//        Number n2 = new Number();
+//        new Thread(()-> {n1.a();}).start();
+//        new Thread(()-> {n2.b();}).start();
+//    }
+
     public static void main(String[] args) {
-        Number n1 = new Number();
-        Number n2 = new Number();
-        new Thread(()-> {n1.a();}).start();
-        new Thread(()-> {n2.b();}).start();
+        Number n = new Number();
+        new Thread(()-> {n.a();}).start();
+        new Thread(()-> {n.b();}).start();
     }
 }
 
 @Slf4j(topic = "c.Number")
 class Number {
     @SneakyThrows
-    public synchronized void a() {
+    public static synchronized void a() {
         sleep(1000);
         log.debug("1");
     }

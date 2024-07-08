@@ -1241,6 +1241,29 @@ class Test04{
 **情况1：** **1 -> 2 或是 2 -> 1**
 
 ```java
+@Slf4j(topic = "c.Test8Locks")
+public class Test8Locks {
+    public static void main(String[] args) {
+        Number n1 = new Number();
+
+        new Thread(() -> {
+            log.debug("begin");
+            n1.a();
+        }).start();
+
+        new Thread(() -> {
+            log.debug("begin");
+            n1.b();
+        }).start();
+
+        new Thread(() -> {
+            log.debug("begin");
+            n1.c();
+        }).start();
+    }
+}
+
+
 @Slf4j(topic = "c.Number")
 class Number {
     public synchronized void a() {
@@ -1256,6 +1279,24 @@ class Number {
 **情况2：** **1s后 -> 1 -> 2或 2-> 1s后 -> 1**
 
 ```java
+@Slf4j(topic = "c.Test8Locks")
+public class Test8Locks {
+    public static void main(String[] args) {
+        Number n1 = new Number();
+
+        new Thread(() -> {
+            log.debug("begin");
+            n1.a();
+        }).start();
+
+        new Thread(() -> {
+            log.debug("begin");
+            n1.b();
+        }).start();
+    }
+}
+
+
 @Slf4j(topic = "c.Number")
 class Number {
     @SneakyThrows
@@ -1286,5 +1327,81 @@ class Number {
 23:06:12.036 [Thread-0] DEBUG c.Test8Locks - begin
 23:06:12.043 [Thread-1] DEBUG c.Number - 2
 23:06:13.045 [Thread-0] DEBUG c.Number - 1
+```
+
+**情况3：** **2/3 -> 1s后 -> 1 或者是 3 -> 1s后 -> 2**
+
+```java
+@Slf4j(topic = "c.Test8Locks")
+public class Test8Locks {
+    public static void main(String[] args) {
+        Number n1 = new Number();
+
+        new Thread(() -> {
+            log.debug("begin");
+            n1.a();
+        }).start();
+
+        new Thread(() -> {
+            log.debug("begin");
+            n1.b();
+        }).start();
+
+        new Thread(() -> {
+            log.debug("begin");
+            n1.c();
+        }).start();
+    }
+}
+
+@Slf4j(topic = "c.Number")
+class Number {
+    @SneakyThrows
+    public synchronized void a() {
+        sleep(1000);
+        log.debug("1");
+    }
+
+    public synchronized void b() {
+        log.debug("2");
+    }
+
+    public void c() {
+        log.debug("3");
+    }
+}
+```
+
+运行结果：
+
+```java
+23:40:21.418 [Thread-1] DEBUG c.Test8Locks - begin
+23:40:21.418 [Thread-0] DEBUG c.Test8Locks - begin
+23:40:21.418 [Thread-2] DEBUG c.Test8Locks - begin
+23:40:21.424 [Thread-1] DEBUG c.Number - 2
+23:40:21.424 [Thread-2] DEBUG c.Number - 3
+23:40:22.425 [Thread-0] DEBUG c.Number - 1
+```
+
+或者是：
+
+```java
+23:42:41.524 [Thread-1] DEBUG c.Test8Locks - begin
+23:42:41.524 [Thread-2] DEBUG c.Test8Locks - begin
+23:42:41.524 [Thread-0] DEBUG c.Test8Locks - begin
+23:42:41.529 [Thread-2] DEBUG c.Number - 3
+23:42:41.529 [Thread-1] DEBUG c.Number - 2
+23:42:42.530 [Thread-0] DEBUG c.Number - 1
+```
+
+或者是：
+
+```java
+23:40:38.773 [Thread-2] DEBUG c.Test8Locks - begin
+23:40:38.773 [Thread-0] DEBUG c.Test8Locks - begin
+23:40:38.773 [Thread-1] DEBUG c.Test8Locks - begin
+23:40:38.778 [Thread-2] DEBUG c.Number - 3
+23:40:39.779 [Thread-0] DEBUG c.Number - 1
+23:40:39.779 [Thread-1] DEBUG c.Number - 2
 ```
 

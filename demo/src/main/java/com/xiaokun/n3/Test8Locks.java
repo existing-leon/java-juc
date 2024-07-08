@@ -23,6 +23,11 @@ public class Test8Locks {
             log.debug("begin");
             n1.b();
         }).start();
+
+        new Thread(() -> {
+            log.debug("begin");
+            n1.c();
+        }).start();
     }
 }
 
@@ -36,5 +41,9 @@ class Number {
 
     public synchronized void b() {
         log.debug("2");
+    }
+
+    public void c() {
+        log.debug("3");
     }
 }

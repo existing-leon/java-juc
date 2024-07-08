@@ -1468,3 +1468,34 @@ class Number {
 23:56:20.206 [Thread-0] DEBUG c.Number - 1
 ```
 
+**情况6：** ** **1s后 -> 1 2**
+
+```java
+    public static void main(String[] args) {
+        Number n = new Number();
+        new Thread(()-> {n.a();}).start();
+        new Thread(()-> {n.b();}).start();
+    }
+}
+
+@Slf4j(topic = "c.Number")
+class Number {
+    @SneakyThrows
+    public static synchronized void a() {
+        sleep(1000);
+        log.debug("1");
+    }
+
+    public static synchronized void b() {
+        log.debug("2");
+    }
+}
+```
+
+运行结果：
+
+```java
+00:02:42.158 [Thread-0] DEBUG c.Number - 1
+00:02:42.164 [Thread-1] DEBUG c.Number - 2
+```
+

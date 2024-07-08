@@ -11,23 +11,30 @@ import static java.lang.Thread.sleep;
  */
 @Slf4j(topic = "c.Test8Locks")
 public class Test8Locks {
+//    public static void main(String[] args) {
+//        Number n1 = new Number();
+//
+//        new Thread(() -> {
+//            log.debug("begin");
+//            n1.a();
+//        }).start();
+//
+//        new Thread(() -> {
+//            log.debug("begin");
+//            n1.b();
+//        }).start();
+//
+//        new Thread(() -> {
+//            log.debug("begin");
+//            n1.c();
+//        }).start();
+//    }
+
     public static void main(String[] args) {
         Number n1 = new Number();
-
-        new Thread(() -> {
-            log.debug("begin");
-            n1.a();
-        }).start();
-
-        new Thread(() -> {
-            log.debug("begin");
-            n1.b();
-        }).start();
-
-        new Thread(() -> {
-            log.debug("begin");
-            n1.c();
-        }).start();
+        Number n2 = new Number();
+        new Thread(()-> {n1.a();}).start();
+        new Thread(()-> {n2.b();}).start();
     }
 }
 

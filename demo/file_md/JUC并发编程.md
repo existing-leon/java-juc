@@ -1405,3 +1405,32 @@ class Number {
 23:40:39.779 [Thread-1] DEBUG c.Number - 2
 ```
 
+**情况4：** **2 -> 1s后  -> 1**
+
+```java
+    public static void main(String[] args) {
+        Number n1 = new Number();
+        Number n2 = new Number();
+        new Thread(()-> {n1.a();}).start();
+        new Thread(()-> {n2.b();}).start();
+    }
+}
+
+@Slf4j(topic = "c.Number")
+class Number {
+    @SneakyThrows
+    public synchronized void a() {
+        sleep(1000);
+        log.debug("1");
+    }
+
+    public synchronized void b() {
+        log.debug("2");
+    }
+
+    public void c() {
+        log.debug("3");
+    }
+}
+```
+

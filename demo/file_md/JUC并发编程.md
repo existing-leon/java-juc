@@ -1530,3 +1530,35 @@ class Number {
 00:06:34.567 [Thread-0] DEBUG c.Number - 1
 ```
 
+**情况8：** **1s后 -> 1 2 或 2 -> 1s后 -> 1**
+
+```java
+    public static void main(String[] args) {
+        Number n1 = new Number();
+        Number n2 = new Number();
+        new Thread(()-> {n1.a();}).start();
+        new Thread(()-> {n2.b();}).start();
+    }
+}
+
+@Slf4j(topic = "c.Number")
+class Number {
+    @SneakyThrows
+    public static synchronized void a() {
+        sleep(1000);
+        log.debug("1");
+    }
+
+    public static synchronized void b() {
+        log.debug("2");
+    }
+}
+```
+
+运行结果：
+
+```java
+00:08:49.674 [Thread-0] DEBUG c.Number - 1
+00:08:49.679 [Thread-1] DEBUG c.Number - 2
+```
+

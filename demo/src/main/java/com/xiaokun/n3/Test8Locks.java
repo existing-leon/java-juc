@@ -52,7 +52,7 @@ class Number {
         log.debug("1");
     }
 
-    public synchronized void b() {
+    public static synchronized void b() {
         log.debug("2");
     }
 

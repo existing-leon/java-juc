@@ -30,18 +30,18 @@ public class Test8Locks {
 //        }).start();
 //    }
 
-//    public static void main(String[] args) {
-//        Number n1 = new Number();
-//        Number n2 = new Number();
-//        new Thread(()-> {n1.a();}).start();
-//        new Thread(()-> {n2.b();}).start();
-//    }
-
     public static void main(String[] args) {
-        Number n = new Number();
-        new Thread(()-> {n.a();}).start();
-        new Thread(()-> {n.b();}).start();
+        Number n1 = new Number();
+        Number n2 = new Number();
+        new Thread(()-> {n1.a();}).start();
+        new Thread(()-> {n2.b();}).start();
     }
+
+//    public static void main(String[] args) {
+//        Number n = new Number();
+//        new Thread(()-> {n.a();}).start();
+//        new Thread(()-> {n.b();}).start();
+//    }
 }
 
 @Slf4j(topic = "c.Number")
@@ -52,7 +52,7 @@ class Number {
         log.debug("1");
     }
 
-    public static synchronized void b() {
+    public synchronized void b() {
         log.debug("2");
     }
 

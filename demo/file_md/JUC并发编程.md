@@ -1588,3 +1588,59 @@ class Number {
 
 #### 局部变量线程安全分析
 
+```java
+@Slf4j(topic = "c.TestThreadSafe")
+public class TestThreadSafe {
+
+    static final int THREAD_NUMBER = 2;
+    static final int LOOP_NUMBER = 200;
+
+    public static void main(String[] args) {
+        ThreadUnsafe test = new ThreadUnsafe();
+        for (int i = 0; i < THREAD_NUMBER; i++) {
+            new Thread(() -> {
+                test.method1(LOOP_NUMBER);
+            }, "Thread" + (i + 1)).start();
+        }
+    }
+}
+
+class ThreadUnsafe {
+    ArrayList<String> list = new ArrayList<String>();
+
+    public void method1(int loopNumber) {
+        for (int i = 0; i < loopNumber; i++) {
+            // { 临界区, 会产生竞态条件
+            method2();
+            method3();
+            // } 临界区
+        }
+    }
+
+
+    private void method2() {
+        list.add("1");
+    }
+
+    private void method3() {
+        list.remove(0);
+    }
+}
+```
+
+其中一种情况是，如果线程2还未add线程1 remove就会报错
+
+```java
+Exception in thread "Thread2" java.lang.IndexOutOfBoundsException: Index: 0, Size: 0
+	at java.util.ArrayList.rangeCheck(ArrayList.java:653)
+	at java.util.ArrayList.remove(ArrayList.java:492)
+	at com.xiaokun.n3.ThreadUnsafe.method3(TestThreadSafe.java:44)
+	at com.xiaokun.n3.ThreadUnsafe.method1(TestThreadSafe.java:34)
+	at com.xiaokun.n3.TestThreadSafe.lambda$main$0(TestThreadSafe.java:22)
+	at java.lang.Thread.run(Thread.java:748)
+```
+
+分析：
+
+* 无论哪个线程中的method2引用的都是同一个对象中的list成员变量
+* method3与method2分析相同

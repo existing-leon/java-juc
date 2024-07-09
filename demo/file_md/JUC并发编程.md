@@ -1644,3 +1644,55 @@ Exception in thread "Thread2" java.lang.IndexOutOfBoundsException: Index: 0, Siz
 
 * 无论哪个线程中的method2引用的都是同一个对象中的list成员变量
 * method3与method2分析相同
+
+
+
+解决方法：
+
+* 将list修改为局部变量即可
+
+```java
+@Slf4j(topic = "c.TestThreadSafe")
+public class TestThreadSafe {
+
+    static final int THREAD_NUMBER = 2;
+    static final int LOOP_NUMBER = 200;
+
+    public static void main(String[] args) {
+        ThreadSafe test = new ThreadSafe();
+        for (int i = 0; i < THREAD_NUMBER; i++) {
+            new Thread(() -> {
+                test.method1(LOOP_NUMBER);
+            }, "Thread" + (i + 1)).start();
+        }
+    }
+}
+
+
+class ThreadSafe{
+    public final void method1(int loopNumber) {
+        ArrayList<String> list = new ArrayList<String>();
+        for (int i = 0; i < loopNumber; i++) {
+            // { 临界区, 会产生竞态条件
+            method2(list);
+            method3(list);
+            // } 临界区
+        }
+    }
+
+
+    private void method2(ArrayList<String> list) {
+        list.add("1");
+    }
+
+    private void method3(ArrayList<String> list) {
+        list.remove(0);
+    }
+}
+```
+
+分析：
+
+* list是局部变量，每个线程调用时会创建其不同实例，没有共享
+* 而method2的参数是从method1中传递过来的，与method1中引用同一个对象
+* method3的参数分析与method2相同

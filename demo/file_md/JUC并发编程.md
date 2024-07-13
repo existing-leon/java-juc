@@ -1696,3 +1696,77 @@ class ThreadSafe{
 * list是局部变量，每个线程调用时会创建其不同实例，没有共享
 * 而method2的参数是从method1中传递过来的，与method1中引用同一个对象
 * method3的参数分析与method2相同
+
+
+
+#### 常见线程安全类
+
+* String
+* Integer
+* StringBuffer
+* Random
+* Vector
+* Hashtable
+* java.util.concurrent包下的类
+
+这里说它们线程安全是指，多个线程调用它们用同一个实例的某个方法时，是线程安全的，也可以理解为：
+
+```java
+Hashtable table = new Hashtable();
+
+new Thread(()-{
+    table.put("key", "value1")
+}).start();
+
+new Thread(()->{
+    table.put("key", "value2")
+}).start();
+```
+
+* 它们的每个方法是原子的
+* 但**注意**它们多个方法的组合不是原子的，见后面分析
+
+##### 不可变类线程安全性
+
+String、Integer等都是不可变类，因为其内部的状态不可改变，因此他们的方法都是线程安全的
+
+String的replace、substring等方法是【可以】 改变值的，那么这些方法又是如何保证线程安全的呢？
+
+因为这些底层实现都是通过创建一个新的对象来实现，并不会修改原有对象
+
+
+
+#### 实例分析
+
+例1：
+
+```java
+public class MyServlet extends HttpServlet{
+    // 是否安全?不安全，Hashtable才是线程安全的
+    Map<String, Object> map = new HashMap<>();
+    
+    // 是否安全？安全
+    String s1 = "...";
+    
+    // 是否安全？安全
+    final String s2 = "...";
+    
+    // 是否安全？不安全，日期可修改
+    Date d1 = new Date();
+    
+    // 是否安全？不安全，日期可修改
+    final Date d2 = new Date();
+    
+    public void doGet(HttpServletRequest request, HttpServletResponse response){
+        // 使用上述变量
+    }
+}
+```
+
+
+
+
+
+
+
+ 
